@@ -12,24 +12,34 @@ function Bot() {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     },[messages])
 
-    const handleSendMessage = async () => {
-        setLoading(true);
-        if(!input.trim()) return;
-        try {
-           const res=await axios.post("http://localhost:3000/bot/v1/message",{
+ const handleSendMessage = async () => {
+    if (!input.trim() || loading) return;
+
+    setLoading(true);
+
+    try {
+        const res = await axios.post(
+            `${import.meta.env.VITE_API_URL}/bot/v1/message`,
+            {
                 text: input
-            })
-            if(res.status === 200) {
-                setMessages([...messages, { text: res.data.userMessage, sender: 'user' }, { text: res.data.botMessage, sender: 'bot' }]);
-               
             }
-            console.log(res.data)
-        } catch (error) {
-            console.log("Error sending message:", error);
+        );
+
+        if (res.status === 200) {
+            setMessages((prevMessages) => [
+                ...prevMessages,
+                { text: res.data.userMessage, sender: 'user' },
+                { text: res.data.botMessage, sender: 'bot' }
+            ]);
         }
-         setInput("");
-            setLoading(false);
+
+        setInput("");
+    } catch (error) {
+        console.log("Error sending message:", error);
+    } finally {
+        setLoading(false);
     }
+};
 
     const handleKeyPress = (e) => {
         if (e.key === 'Enter') handleSendMessage()}
